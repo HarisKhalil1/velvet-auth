@@ -820,10 +820,12 @@ a:hover {
     display: none;
     min-height: 100vh;
     background: var(--background);
+    overflow: visible;
 }
 
 .dashboard-container.active {
     display: flex;
+    overflow: visible;
 }
 
 /* ============================================
@@ -1038,6 +1040,17 @@ a:hover {
     margin-left: 280px;
     padding: var(--spacing-xl);
     min-height: 100vh;
+    overflow: visible;
+}
+
+.dashboard-section {
+    display: none;
+    overflow: visible;
+}
+
+.dashboard-section.active {
+    display: block;
+    overflow: visible;
 }
 
 /* Section Header */
@@ -1074,6 +1087,7 @@ a:hover {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
+    width: 100%;
 }
 
 .stat-card {
@@ -1085,6 +1099,10 @@ a:hover {
     gap: var(--spacing-md);
     box-shadow: var(--shadow-md);
     transition: transform var(--transition-fast);
+    min-height: 100px;
+    overflow: visible;
+    position: relative;
+    z-index: 1;
 }
 
 .stat-card:hover {
@@ -1106,18 +1124,23 @@ a:hover {
 .stat-info {
     display: flex;
     flex-direction: column;
+    overflow: visible;
+    flex: 1;
 }
 
 .stat-label {
     font-size: 0.85rem;
     color: var(--text-muted);
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .stat-value {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: visible;
 }
 
 /* Dashboard Cards */
@@ -1125,6 +1148,7 @@ a:hover {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-lg);
+    overflow: visible;
 }
 
 .dashboard-card {
@@ -1132,6 +1156,7 @@ a:hover {
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-md);
+    overflow: visible;
 }
 
 .card-header {
@@ -1291,15 +1316,6 @@ a:hover {
 .activity-time {
     font-size: 0.8rem;
     color: var(--text-muted);
-}
-
-/* Dashboard Sections */
-.dashboard-section {
-    display: none;
-}
-
-.dashboard-section.active {
-    display: block;
 }
 
 /* Placeholder Content */

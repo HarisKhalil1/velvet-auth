@@ -830,7 +830,21 @@ function showDashboard(user) {
             
             gsap.fromTo(elements.dashboardContainer,
                 { opacity: 0, scale: 1.05 },
-                { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' }
+                { 
+                    opacity: 1, 
+                    scale: 1, 
+                    duration: 0.3, 
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        // Force all stat cards to be fully visible
+                        gsap.set('.stat-card, .dashboard-card, .stat-info, .stat-value, .stat-label', { 
+                            opacity: 1, 
+                            visibility: 'visible',
+                            display: 'flex'
+                        });
+                        gsap.set('.stat-value', { display: 'block' });
+                    }
+                }
             );
             
             // Animate dashboard elements
@@ -940,20 +954,12 @@ function startSessionTimer() {
 }
 
 function animateDashboardElements() {
-    // Ensure elements are visible before animating
-    gsap.set('.stat-card, .dashboard-card', { opacity: 1, y: 0 });
-    
-    // Animate stat cards
-    gsap.fromTo('.stat-card',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out', delay: 0.2 }
-    );
-    
-    // Animate dashboard cards
-    gsap.fromTo('.dashboard-card',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.4, stagger: 0.15, ease: 'power2.out', delay: 0.4 }
-    );
+    // Set all elements to fully visible immediately - no opacity animations
+    gsap.set('.stat-card, .dashboard-card', { 
+        opacity: 1, 
+        y: 0,
+        clearProps: 'transform' 
+    });
 }
 
 function addActivityEntry(title, type = 'info') {
