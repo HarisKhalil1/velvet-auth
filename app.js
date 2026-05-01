@@ -106,6 +106,16 @@ let auth;
 try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
+    
+    // Enable session persistence for redirect auth
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            console.log('Auth persistence set to LOCAL');
+        })
+        .catch((error) => {
+            console.error('Auth persistence error:', error);
+        });
+    
     console.log('Firebase initialized successfully');
 } catch (error) {
     console.error('Firebase initialization error:', error);
@@ -124,6 +134,16 @@ async function initApp() {
     // Handle redirect result FIRST (before auth state listener)
     // This catches the result when user returns from Google/GitHub
     const redirectHandled = await handleRedirectResult();
+    
+    // If no redirect result but URL has OAuth params, wait for auth state
+    const urlParams = new URLSearchParams(window.location.search);
+    const mightBeRedirect = urlParams.has('code') || urlParams.has('state') || urlParams.has('error');
+    
+    if (!redirectHandled && mightBeRedirect) {
+        console.log('Possible redirect detected - waiting for auth state...');
+        // Wait a bit longer for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     
     // Initialize auth state listener
     initAuthStateListener();
@@ -541,21 +561,53 @@ async function handleSocialAuth(provider) {
 async function handleRedirectResult() {
     console.log('Checking for redirect result...');
     
+    // Check URL for redirect indicators
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasCode = urlParams.has('code');
+    const hasState = urlParams.has('state');
+    const hasError = urlParams.has('error');
+    console.log('URL params - code:', hasCode, 'state:', hasState, 'error:', hasError);
+    console.log('Current URL:', window.location.href);
+    console.log('Full URL search:', window.location.search);
+    
+    // Check if user is already signed in (session persistence)
+    const currentUser = auth.currentUser;
+    console.log('Current user from auth:', currentUser);
+    
+    if (currentUser) {
+        console.log('User already signed in via session:', currentUser);
+        return true;
+    }
+    
+    // Check for OAuth errors in URL
+    if (hasError) {
+        const errorDesc = urlParams.get('error_description') || 'Unknown error';
+        console.error('OAuth error in URL:', urlParams.get('error'), errorDesc);
+        showToast('Sign-in failed: ' + errorDesc, 'error');
+        return false;
+    }
+    
     try {
+        console.log('Calling getRedirectResult()...');
         const result = await auth.getRedirectResult();
         
-        if (result.user) {
-            console.log('Redirect result: User signed in', result.user);
+        console.log('Redirect result received:', result);
+        console.log('Result credential:', result ? result.credential : 'null');
+        console.log('Result user:', result ? result.user : 'null');
+        
+        if (result && result.user) {
+            console.log('Redirect result: User signed in!', result.user);
             showToast(`Welcome ${result.user.displayName || result.user.email}!`, 'success');
-            // User is already handled by onAuthStateChanged, just return true
             return true;
         } else {
-            console.log('No redirect result - normal page load');
+            console.log('No redirect result - this is a normal page load or redirect failed');
             return false;
         }
     } catch (error) {
         console.error('Redirect result error:', error);
-        // Only show error if it's not the "no redirect operation" error
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
         if (error.code !== 'auth/redirect-cancelled-by-user') {
             handleFirebaseError(error, 'redirect');
         }
