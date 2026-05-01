@@ -807,6 +807,9 @@ function showDashboard(user) {
     // Update user info in dashboard
     updateUserInfo(user);
     
+    // Ensure all dashboard content is visible
+    gsap.set('.stat-card, .dashboard-card, .dashboard-section', { opacity: 1, y: 0, x: 0 });
+    
     // Animate transition
     gsap.to(elements.authContainer, {
         opacity: 0,
@@ -816,6 +819,14 @@ function showDashboard(user) {
         onComplete: () => {
             elements.authContainer.style.display = 'none';
             elements.dashboardContainer.style.display = 'flex';
+            
+            // Ensure overview section is active and visible
+            const overviewSection = document.getElementById('overview-section');
+            if (overviewSection) {
+                document.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+                overviewSection.classList.add('active');
+                gsap.set(overviewSection, { opacity: 1, display: 'block' });
+            }
             
             gsap.fromTo(elements.dashboardContainer,
                 { opacity: 0, scale: 1.05 },
@@ -929,25 +940,20 @@ function startSessionTimer() {
 }
 
 function animateDashboardElements() {
+    // Ensure elements are visible before animating
+    gsap.set('.stat-card, .dashboard-card', { opacity: 1, y: 0 });
+    
     // Animate stat cards
-    gsap.from('.stat-card', {
-        y: 30,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.1,
-        ease: 'power2.out',
-        delay: 0.2
-    });
+    gsap.fromTo('.stat-card',
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, stagger: 0.1, ease: 'power2.out', delay: 0.2 }
+    );
     
     // Animate dashboard cards
-    gsap.from('.dashboard-card', {
-        y: 30,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.15,
-        ease: 'power2.out',
-        delay: 0.4
-    });
+    gsap.fromTo('.dashboard-card',
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, stagger: 0.15, ease: 'power2.out', delay: 0.4 }
+    );
 }
 
 function addActivityEntry(title, type = 'info') {
