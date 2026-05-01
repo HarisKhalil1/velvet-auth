@@ -117,9 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-function initApp() {
+async function initApp() {
     // Loading screen animation
     animateLoadingScreen();
+    
+    // Handle redirect result FIRST (before auth state listener)
+    // This catches the result when user returns from Google/GitHub
+    const redirectHandled = await handleRedirectResult();
+    
+    // Initialize auth state listener
+    initAuthStateListener();
     
     // Initialize form handlers
     initFormHandlers();
@@ -136,14 +143,8 @@ function initApp() {
     // Initialize dashboard
     initDashboard();
     
-    // Initialize auth state listener
-    initAuthStateListener();
-    
     // Initialize toggle password buttons
     initTogglePassword();
-    
-    // Handle redirect result (for Google/GitHub auth)
-    handleRedirectResult();
 }
 
 // ============================================
@@ -166,15 +167,19 @@ function animateLoadingScreen() {
         y: 0,
         duration: 0.5,
         ease: 'power2.out'
-    }, '-=0.5')
-    .to('.loading-screen', {
+    }, '-=0.5');
+    // Don't hide loading screen here - wait for auth state
+}
+
+function hideLoadingScreen() {
+    gsap.to('.loading-screen', {
         opacity: 0,
         duration: 0.5,
         ease: 'power2.in',
         onComplete: () => {
             elements.loadingScreen.style.display = 'none';
         }
-    }, '+=0.5');
+    });
 }
 
 // ============================================
@@ -534,16 +539,27 @@ async function handleSocialAuth(provider) {
 
 // Handle redirect result when page loads
 async function handleRedirectResult() {
+    console.log('Checking for redirect result...');
+    
     try {
         const result = await auth.getRedirectResult();
+        
         if (result.user) {
-            showToast(`Welcome back!`, 'success');
+            console.log('Redirect result: User signed in', result.user);
+            showToast(`Welcome ${result.user.displayName || result.user.email}!`, 'success');
+            // User is already handled by onAuthStateChanged, just return true
+            return true;
+        } else {
+            console.log('No redirect result - normal page load');
+            return false;
         }
     } catch (error) {
+        console.error('Redirect result error:', error);
         // Only show error if it's not the "no redirect operation" error
         if (error.code !== 'auth/redirect-cancelled-by-user') {
             handleFirebaseError(error, 'redirect');
         }
+        return false;
     }
 }
 
@@ -632,14 +648,27 @@ function initTogglePassword() {
 // ============================================
 // AUTH STATE LISTENER
 // ============================================
+let authInitialized = false;
+
 function initAuthStateListener() {
+    console.log('Initializing auth state listener...');
+    
     auth.onAuthStateChanged((user) => {
+        console.log('Auth state changed:', user ? 'User signed in' : 'No user');
+        
         if (user) {
             // User is signed in
+            console.log('User details:', user.email, user.displayName);
             showDashboard(user);
         } else {
             // User is signed out
             showAuth();
+        }
+        
+        // Hide loading screen after auth state is determined
+        if (!authInitialized) {
+            authInitialized = true;
+            setTimeout(hideLoadingScreen, 500);
         }
     });
 }
