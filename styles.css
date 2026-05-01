@@ -1166,6 +1166,43 @@ a:hover {
     border: 4px solid var(--background);
 }
 
+.mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.mobile-logout-btn {
+    background: rgba(211, 47, 47, 0.1);
+    border: none;
+    color: var(--error);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.mobile-logout-btn:hover {
+    background: rgba(211, 47, 47, 0.2);
+}
+
+.mobile-logout-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.mobile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--glass-border);
+}
+
 .avatar-status {
     position: absolute;
     bottom: 4px;
@@ -1378,6 +1415,34 @@ a:hover {
     background: var(--background);
 }
 
+/* Chart Placeholder & Mini Stats */
+.chart-placeholder {
+    padding: var(--spacing-lg);
+}
+
+.mini-stats {
+    display: flex;
+    gap: var(--spacing-xl);
+    justify-content: center;
+}
+
+.mini-stat {
+    text-align: center;
+}
+
+.mini-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.mini-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
 .security-options {
     display: flex;
     flex-direction: column;
@@ -1493,6 +1558,15 @@ a:hover {
 @media (max-width: 480px) {
     .auth-container {
         padding: var(--spacing-sm);
+    }
+    
+    .mini-stats {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .mini-value {
+        font-size: 1.5rem;
     }
     
     .auth-wrapper {

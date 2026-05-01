@@ -71,6 +71,7 @@ const elements = {
     dashboardSidebar: document.getElementById('dashboard-sidebar'),
     sidebarOverlay: document.getElementById('sidebar-overlay'),
     logoutBtn: document.getElementById('logout-btn'),
+    mobileLogoutBtn: document.getElementById('mobile-logout-btn'),
     
     // User Profile Elements
     mobileAvatar: document.getElementById('mobile-avatar'),
@@ -85,6 +86,14 @@ const elements = {
     lastLogin: document.getElementById('last-login'),
     recentActivity: document.getElementById('recent-activity'),
     fullActivity: document.getElementById('full-activity'),
+    
+    // Analytics Elements
+    analyticsSecurity: document.getElementById('analytics-security'),
+    analyticsMember: document.getElementById('analytics-member'),
+    analyticsLogin: document.getElementById('analytics-login'),
+    analyticsSession: document.getElementById('analytics-session'),
+    analyticsTotal: document.getElementById('analytics-total'),
+    analyticsProvider: document.getElementById('analytics-provider'),
     
     // Settings
     settingsName: document.getElementById('settings-name'),
@@ -584,20 +593,42 @@ async function handleSocialAuth(provider) {
         authProvider = new firebase.auth.GithubAuthProvider();
     }
     
-    // Use POPUP - more reliable on GitHub Pages than redirect
+    // Add scopes
+    authProvider.addScope('email');
+    authProvider.addScope('profile');
+    
     console.log('Starting sign in with popup...');
-    showToast('Opening ' + provider + ' sign-in...', 'info');
+    showToast('Opening ' + provider + ' sign-in window...', 'info');
     
     try {
+        // Open popup centered on screen
+        const width = 500;
+        const height = 600;
+        const left = (window.innerWidth - width) / 2;
+        const top = (window.innerHeight - height) / 2;
+        
+        const popup = window.open(
+            'about:blank',
+            'SignIn',
+            `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+        );
+        
+        if (!popup || popup.closed) {
+            throw { code: 'auth/popup-blocked', message: 'Popup was blocked' };
+        }
+        
+        // Close the blank popup and use Firebase's popup
+        popup.close();
+        
         const result = await auth.signInWithPopup(authProvider);
         console.log('Popup sign-in successful:', result.user);
         showToast(`Welcome ${result.user.displayName || result.user.email}!`, 'success');
     } catch (error) {
         console.error('Popup error:', error);
         
-        // If popup blocked, show specific error
-        if (error.code === 'auth/popup-blocked') {
-            showToast('Please allow popups for this site to sign in with ' + provider, 'error');
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+            showToast('⚠️ Please allow popups for this site!', 'error', 'Popup Blocked');
+            console.log('To allow popups: Look for blocked popup icon in address bar and click "Always allow"');
         } else {
             handleFirebaseError(error, provider);
         }
@@ -855,6 +886,46 @@ function updateUserInfo(user) {
     
     // Add activity entry
     addActivityEntry('Successfully logged in', 'success');
+    
+    // Update Analytics
+    if (elements.analyticsSecurity) elements.analyticsSecurity.textContent = '98%';
+    if (elements.analyticsMember) elements.analyticsMember.textContent = elements.memberSince.textContent;
+    if (elements.analyticsLogin) elements.analyticsLogin.textContent = lastLoginText;
+    if (elements.analyticsProvider) {
+        const provider = user.providerData[0]?.providerId || 'email';
+        elements.analyticsProvider.textContent = provider === 'password' ? 'Email' : 
+                                                  provider === 'google.com' ? 'Google' : 
+                                                  provider === 'github.com' ? 'GitHub' : provider;
+    }
+    
+    // Start session timer
+    startSessionTimer();
+}
+
+// Session timer for analytics
+let sessionStartTime = Date.now();
+let sessionTimerInterval;
+
+function startSessionTimer() {
+    sessionStartTime = Date.now();
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    
+    sessionTimerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const hours = Math.floor(minutes / 60);
+        
+        let timeText;
+        if (hours > 0) {
+            timeText = `${hours}h ${minutes % 60}m`;
+        } else {
+            timeText = `${minutes}m`;
+        }
+        
+        if (elements.analyticsSession) {
+            elements.analyticsSession.textContent = timeText;
+        }
+    }, 60000); // Update every minute
 }
 
 function animateDashboardElements() {
@@ -1008,11 +1079,18 @@ function closeMobileSidebar() {
 // DASHBOARD FUNCTIONALITY
 // ============================================
 function initDashboard() {
-    // Logout button
+    // Logout button (sidebar)
     elements.logoutBtn.addEventListener('click', handleLogout);
     
+    // Mobile logout button
+    if (elements.mobileLogoutBtn) {
+        elements.mobileLogoutBtn.addEventListener('click', handleLogout);
+    }
+    
     // Save settings
-    elements.saveSettings.addEventListener('click', handleSaveSettings);
+    if (elements.saveSettings) {
+        elements.saveSettings.addEventListener('click', handleSaveSettings);
+    }
     
     // Change password button
     elements.changePasswordBtn.addEventListener('click', () => {
