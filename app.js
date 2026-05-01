@@ -128,43 +128,82 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initApp() {
+    console.log('=== initApp starting ===');
+    
     // Loading screen animation
     animateLoadingScreen();
     
-    // Handle redirect result FIRST (before auth state listener)
-    // This catches the result when user returns from Google/GitHub
-    const redirectHandled = await handleRedirectResult();
-    
-    // If no redirect result but URL has OAuth params, wait for auth state
+    // Check URL for OAuth redirect indicators
     const urlParams = new URLSearchParams(window.location.search);
-    const mightBeRedirect = urlParams.has('code') || urlParams.has('state') || urlParams.has('error');
+    const hasOAuthParams = urlParams.has('code') || urlParams.has('state') || urlParams.has('error');
+    console.log('URL has OAuth params:', hasOAuthParams);
     
-    if (!redirectHandled && mightBeRedirect) {
-        console.log('Possible redirect detected - waiting for auth state...');
-        // Wait a bit longer for auth state to update
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    // If this is a redirect return, wait for auth to settle
+    if (hasOAuthParams) {
+        console.log('Redirect detected - waiting for auth state...');
+        
+        // Wait for auth state to stabilize after redirect
+        const user = await waitForAuthState();
+        
+        if (user) {
+            console.log('User found after redirect:', user.email);
+            showDashboard(user);
+        } else {
+            console.log('No user after redirect');
+            showAuth();
+        }
+        
+        hideLoadingScreen();
+    } else {
+        // Normal page load - check redirect result then auth state
+        const redirectHandled = await handleRedirectResult();
+        
+        if (redirectHandled) {
+            console.log('Redirect handled successfully');
+            hideLoadingScreen();
+        } else {
+            // No redirect - initialize auth listener
+            initAuthStateListener();
+            
+            // Check current auth state
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+                console.log('Already signed in:', currentUser.email);
+                showDashboard(currentUser);
+            } else {
+                showAuth();
+            }
+            hideLoadingScreen();
+        }
     }
     
-    // Initialize auth state listener
-    initAuthStateListener();
-    
-    // Initialize form handlers
+    // Initialize all other components
     initFormHandlers();
-    
-    // Initialize password strength indicator
     initPasswordStrength();
-    
-    // Initialize social auth
     initSocialAuth();
-    
-    // Initialize navigation
     initNavigation();
-    
-    // Initialize dashboard
     initDashboard();
-    
-    // Initialize toggle password buttons
     initTogglePassword();
+    
+    console.log('=== initApp complete ===');
+}
+
+// Helper function to wait for auth state after redirect
+function waitForAuthState(timeout = 5000) {
+    return new Promise((resolve) => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            console.log('waitForAuthState - user:', user ? user.email : 'null');
+            unsubscribe();
+            resolve(user);
+        });
+        
+        // Timeout fallback
+        setTimeout(() => {
+            console.log('waitForAuthState timeout');
+            unsubscribe();
+            resolve(auth.currentUser);
+        }, timeout);
+    });
 }
 
 // ============================================
