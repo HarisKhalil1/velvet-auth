@@ -825,6 +825,9 @@ a:hover {
 
 .dashboard-container.active {
     display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
     overflow: visible;
 }
 
@@ -1040,17 +1043,41 @@ a:hover {
     margin-left: 280px;
     padding: var(--spacing-xl);
     min-height: 100vh;
-    overflow: visible;
+    overflow-y: auto;
+    overflow-x: visible;
 }
 
 .dashboard-section {
     display: none;
     overflow: visible;
+    width: 100%;
+    height: auto;
 }
 
 .dashboard-section.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
     overflow: visible;
+    width: 100%;
+    height: auto;
+}
+
+/* Ensure section content starts at top - NO extra spacing */
+.dashboard-section > *:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.dashboard-section .section-header {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Ensure full width for section children in flex layout */
+.dashboard-section.active > * {
+    width: 100%;
 }
 
 /* Section Header */
@@ -1058,7 +1085,8 @@ a:hover {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: var(--spacing-xl);
+    margin: 0 0 var(--spacing-xl) 0;
+    padding: 0;
 }
 
 .header-welcome h1 {

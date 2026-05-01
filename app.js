@@ -823,32 +823,19 @@ function showDashboard(user) {
             // Ensure overview section is active and visible
             const overviewSection = document.getElementById('overview-section');
             if (overviewSection) {
-                document.querySelectorAll('.dashboard-section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.dashboard-section').forEach(s => {
+                    s.classList.remove('active');
+                    s.style.display = 'none';
+                });
                 overviewSection.classList.add('active');
-                gsap.set(overviewSection, { opacity: 1, display: 'block' });
+                overviewSection.style.display = 'flex';
+                gsap.set(overviewSection, { opacity: 1 });
             }
             
             gsap.fromTo(elements.dashboardContainer,
-                { opacity: 0, scale: 1.05 },
-                { 
-                    opacity: 1, 
-                    scale: 1, 
-                    duration: 0.3, 
-                    ease: 'power2.out',
-                    onComplete: () => {
-                        // Force all stat cards to be fully visible
-                        gsap.set('.stat-card, .dashboard-card, .stat-info, .stat-value, .stat-label', { 
-                            opacity: 1, 
-                            visibility: 'visible',
-                            display: 'flex'
-                        });
-                        gsap.set('.stat-value', { display: 'block' });
-                    }
-                }
+                { opacity: 0 },
+                { opacity: 1, duration: 0.3, ease: 'power2.out' }
             );
-            
-            // Animate dashboard elements
-            animateDashboardElements();
         }
     });
 }
@@ -1058,21 +1045,24 @@ function switchSection(sectionId) {
     
     if (!targetSection || currentSection === targetSection) return;
     
-    gsap.to(currentSection, {
-        opacity: 0,
-        x: -20,
-        duration: 0.2,
-        ease: 'power2.in',
-        onComplete: () => {
-            currentSection.classList.remove('active');
-            targetSection.classList.add('active');
-            
-            gsap.fromTo(targetSection,
-                { opacity: 0, x: 20 },
-                { opacity: 1, x: 0, duration: 0.3, ease: 'power2.out' }
-            );
+    // Hide current section
+    currentSection.classList.remove('active');
+    currentSection.style.display = 'none';
+    
+    // Show target section
+    targetSection.classList.add('active');
+    targetSection.style.display = 'flex';
+    
+    // Scroll to top after a slight delay to ensure section is rendered
+    setTimeout(() => {
+        const mainContent = document.querySelector('.dashboard-main');
+        if (mainContent) {
+            mainContent.scrollTop = 0;
         }
-    });
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+    }, 10);
 }
 
 function openMobileSidebar() {
