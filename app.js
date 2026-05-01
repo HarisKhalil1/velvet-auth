@@ -584,15 +584,23 @@ async function handleSocialAuth(provider) {
         authProvider = new firebase.auth.GithubAuthProvider();
     }
     
-    // Use redirect method (works on GitHub Pages)
-    console.log('Starting sign in with redirect...');
-    showToast('Redirecting to ' + provider + '...', 'info');
+    // Use POPUP - more reliable on GitHub Pages than redirect
+    console.log('Starting sign in with popup...');
+    showToast('Opening ' + provider + ' sign-in...', 'info');
     
     try {
-        await auth.signInWithRedirect(authProvider);
+        const result = await auth.signInWithPopup(authProvider);
+        console.log('Popup sign-in successful:', result.user);
+        showToast(`Welcome ${result.user.displayName || result.user.email}!`, 'success');
     } catch (error) {
-        console.error('Redirect error:', error);
-        handleFirebaseError(error, provider);
+        console.error('Popup error:', error);
+        
+        // If popup blocked, show specific error
+        if (error.code === 'auth/popup-blocked') {
+            showToast('Please allow popups for this site to sign in with ' + provider, 'error');
+        } else {
+            handleFirebaseError(error, provider);
+        }
     }
 }
 
