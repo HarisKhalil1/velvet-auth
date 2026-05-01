@@ -452,16 +452,66 @@ function updatePasswordStrengthUI(strength) {
 // SOCIAL AUTHENTICATION
 // ============================================
 function initSocialAuth() {
+    console.log('Initializing social auth...');
+    
+    // Get buttons directly to ensure they exist
+    const googleSigninBtn = document.getElementById('google-signin');
+    const githubSigninBtn = document.getElementById('github-signin');
+    const googleSignupBtn = document.getElementById('google-signup');
+    const githubSignupBtn = document.getElementById('github-signup');
+    
+    console.log('Buttons found:', {
+        googleSignin: !!googleSigninBtn,
+        githubSignin: !!githubSigninBtn,
+        googleSignup: !!googleSignupBtn,
+        githubSignup: !!githubSignupBtn
+    });
+    
     // Google Sign In
-    elements.googleSignin.addEventListener('click', () => handleSocialAuth('google'));
-    elements.googleSignup.addEventListener('click', () => handleSocialAuth('google'));
+    if (googleSigninBtn) {
+        googleSigninBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Google signin clicked');
+            handleSocialAuth('google');
+        });
+    }
+    
+    if (googleSignupBtn) {
+        googleSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Google signup clicked');
+            handleSocialAuth('google');
+        });
+    }
     
     // GitHub Sign In
-    elements.githubSignin.addEventListener('click', () => handleSocialAuth('github'));
-    elements.githubSignup.addEventListener('click', () => handleSocialAuth('github'));
+    if (githubSigninBtn) {
+        githubSigninBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Github signin clicked');
+            handleSocialAuth('github');
+        });
+    }
+    
+    if (githubSignupBtn) {
+        githubSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Github signup clicked');
+            handleSocialAuth('github');
+        });
+    }
 }
 
 async function handleSocialAuth(provider) {
+    console.log('handleSocialAuth called for:', provider);
+    
+    // Check if Firebase is initialized
+    if (!auth) {
+        console.error('Firebase auth not initialized');
+        showToast('Authentication not ready. Please refresh the page.', 'error');
+        return;
+    }
+    
     let authProvider;
     
     if (provider === 'google') {
@@ -470,10 +520,14 @@ async function handleSocialAuth(provider) {
         authProvider = new firebase.auth.GithubAuthProvider();
     }
     
+    // Use redirect method (works on GitHub Pages)
+    console.log('Starting sign in with redirect...');
+    showToast('Redirecting to ' + provider + '...', 'info');
+    
     try {
-        // Use redirect instead of popup for better compatibility
         await auth.signInWithRedirect(authProvider);
     } catch (error) {
+        console.error('Redirect error:', error);
         handleFirebaseError(error, provider);
     }
 }
