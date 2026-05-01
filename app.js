@@ -828,7 +828,7 @@ function showDashboard(user) {
                     s.style.display = 'none';
                 });
                 overviewSection.classList.add('active');
-                overviewSection.style.display = 'flex';
+                overviewSection.style.display = 'block';
                 gsap.set(overviewSection, { opacity: 1 });
             }
             
@@ -1051,7 +1051,7 @@ function switchSection(sectionId) {
     
     // Show target section
     targetSection.classList.add('active');
-    targetSection.style.display = 'flex';
+    targetSection.style.display = 'block';
     
     // Scroll to top after a slight delay to ensure section is rendered
     setTimeout(() => {

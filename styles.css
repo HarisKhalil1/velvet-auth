@@ -826,7 +826,7 @@ a:hover {
 .dashboard-container.active {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: flex-start;
     overflow: visible;
 }
@@ -1042,7 +1042,7 @@ a:hover {
     flex: 1;
     margin-left: 280px;
     padding: var(--spacing-xl);
-    min-height: 100vh;
+    min-height: auto;
     overflow-y: auto;
     overflow-x: visible;
 }
@@ -1055,10 +1055,7 @@ a:hover {
 }
 
 .dashboard-section.active {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
+    display: block;
     overflow: visible;
     width: 100%;
     height: auto;
@@ -1073,11 +1070,6 @@ a:hover {
 .dashboard-section .section-header {
     margin-top: 0 !important;
     padding-top: 0 !important;
-}
-
-/* Ensure full width for section children in flex layout */
-.dashboard-section.active > * {
-    width: 100%;
 }
 
 /* Section Header */
